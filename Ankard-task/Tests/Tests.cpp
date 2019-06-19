@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include <CmdLineParser.h>
-#include <CmdLineExceptions.h>
+#include <Exceptions.h>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace task;

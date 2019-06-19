@@ -156,7 +156,7 @@
     <ClCompile Include="CmdLineParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CmdLineExceptions.h" />
+    <ClInclude Include="Exceptions.h" />
     <ClInclude Include="CmdLineParser.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

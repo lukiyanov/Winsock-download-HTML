@@ -6,6 +6,7 @@ namespace task
 	///////////////////////////////////////////////////////////////////////////
 	//
 	//	Парсит командную строку, возвращает извлечённые параметры.
+	//	Также проверяет реальное существование директории.
 	//
 	///////////////////////////////////////////////////////////////////////////
 	class CmdLineParser
@@ -25,7 +26,10 @@ namespace task
 
 	private:
 		std::string m_url;
-		std::string m_drectory;
+		std::string m_directory;
+
+	private:
+		void CheckDirectoryExistance();
 	};
 
 	///////////////////////////////////////////////////////////////////////////
@@ -40,7 +44,7 @@ inline std::string task::CmdLineParser::GetUrl() const
 // ----------------------------------------------------------------------------
 inline std::string task::CmdLineParser::GetDirectory() const
 {
-	return m_drectory;
+	return m_directory;
 }
 
 // ----------------------------------------------------------------------------

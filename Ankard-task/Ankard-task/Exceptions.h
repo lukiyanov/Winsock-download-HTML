@@ -5,7 +5,7 @@ namespace task
 {
 	///////////////////////////////////////////////////////////////////////////
 	//
-	// Ошибка в командной строке.
+	// Неверный формат командной строки.
 	//
 	///////////////////////////////////////////////////////////////////////////
 	class CommandLineException : std::invalid_argument
@@ -13,6 +13,19 @@ namespace task
 	public:
 		CommandLineException(const std::string& what_arg)
 			: invalid_argument(what_arg)
+		{}
+	};
+
+	///////////////////////////////////////////////////////////////////////////
+	//
+	// Указанной директории не существует.
+	//
+	///////////////////////////////////////////////////////////////////////////
+	class DirectoryDoesNotExist : std::invalid_argument
+	{
+	public:
+		DirectoryDoesNotExist()
+			: invalid_argument("Directory does not exist")
 		{}
 	};
 
