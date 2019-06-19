@@ -5,29 +5,73 @@ namespace task
 {
 	///////////////////////////////////////////////////////////////////////////
 	//
-	// Неверный формат командной строки.
+	//	Неверный формат командной строки.
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class CommandLineException : std::invalid_argument
+	class CommandLineException : std::runtime_error
 	{
 	public:
 		CommandLineException(const std::string& what_arg)
-			: invalid_argument(what_arg)
+			: runtime_error(what_arg)
 		{}
 	};
 
+
 	///////////////////////////////////////////////////////////////////////////
 	//
-	// Указанной директории не существует.
+	//	Указанной директории не существует.
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class DirectoryDoesNotExist : std::invalid_argument
+	class DirectoryDoesNotExist : std::runtime_error
 	{
 	public:
 		DirectoryDoesNotExist()
-			: invalid_argument("Directory does not exist")
+			: runtime_error("Directory does not exist")
 		{}
 	};
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//
+	//	Ошибка при работе с Winsock (общий случай).
+	//
+	///////////////////////////////////////////////////////////////////////////
+	class WinsockException : std::runtime_error
+	{
+	public:
+		WinsockException(const std::string& what_arg)
+			: runtime_error(what_arg)
+		{}
+	};
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//
+	//	Ошибка при инициализации Winsock.
+	//
+	///////////////////////////////////////////////////////////////////////////
+	class WinsockInitializeException : WinsockException
+	{
+	public:
+		WinsockInitializeException()
+			: WinsockException("Winsock initialization error")
+		{}
+	};
+
+
+	///////////////////////////////////////////////////////////////////////////
+	//
+	//	Ошибка при очистке Winsock.
+	//
+	///////////////////////////////////////////////////////////////////////////
+	class WinsockCleanupException : WinsockException
+	{
+	public:
+		WinsockCleanupException()
+			: WinsockException("Winsock cleanup error")
+		{}
+	};
+
 
 	///////////////////////////////////////////////////////////////////////////
 }

@@ -1,7 +1,6 @@
 ﻿#include <iostream>
-
 #include "CmdLineParser.h"
-
+#include "PageDownloader.h"
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -10,8 +9,9 @@ int main(int argc, char** argv)
 	try
 	{
 		CmdLineParser cmdLine(argc, argv);
-		PageDownloader page(cmdLine.GetUrl());
-		page.DownloadTo(cmdLine.GetDirectory()); // TODO: количество потоков, типы доскачиваемых файлов
+
+		PageDownloader page;
+		page.DownloadPageToDirectory(cmdLine.GetUrl(), cmdLine.GetDirectory());
 	}
 	catch (std::exception& ex)
 	{
