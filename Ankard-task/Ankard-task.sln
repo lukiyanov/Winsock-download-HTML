@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Ankard-task", "Ankard-task\Ankard-task.vcxproj", "{1994B49B-D3AC-4438-AD72-4F3A8C4A20B8}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxproj", "{85484CCD-DE97-4DFC-822E-3F9F676E04C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{1994B49B-D3AC-4438-AD72-4F3A8C4A20B8}.Release|x64.Build.0 = Release|x64
 		{1994B49B-D3AC-4438-AD72-4F3A8C4A20B8}.Release|x86.ActiveCfg = Release|Win32
 		{1994B49B-D3AC-4438-AD72-4F3A8C4A20B8}.Release|x86.Build.0 = Release|Win32
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Debug|x64.ActiveCfg = Debug|x64
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Debug|x64.Build.0 = Debug|x64
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Debug|x86.ActiveCfg = Debug|Win32
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Debug|x86.Build.0 = Debug|Win32
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Release|x64.ActiveCfg = Release|x64
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Release|x64.Build.0 = Release|x64
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Release|x86.ActiveCfg = Release|Win32
+		{85484CCD-DE97-4DFC-822E-3F9F676E04C5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
