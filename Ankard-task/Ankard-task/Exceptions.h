@@ -1,5 +1,6 @@
 #pragma once
 #include <stdexcept>
+#include <string>
 
 namespace task
 {
@@ -8,7 +9,7 @@ namespace task
 	//	Неверный формат командной строки.
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class CommandLineException : std::runtime_error
+	class CommandLineException : public std::runtime_error
 	{
 	public:
 		CommandLineException(const std::string& what_arg)
@@ -22,7 +23,7 @@ namespace task
 	//	Указанной директории не существует.
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class DirectoryDoesNotExist : std::runtime_error
+	class DirectoryDoesNotExist : public std::runtime_error
 	{
 	public:
 		DirectoryDoesNotExist()
@@ -36,7 +37,7 @@ namespace task
 	//	Ошибка при работе с Winsock (общий случай).
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class WinsockException : std::runtime_error
+	class WinsockException : public std::runtime_error
 	{
 	public:
 		WinsockException(const std::string& what_arg)
@@ -50,7 +51,7 @@ namespace task
 	//	Ошибка при инициализации Winsock.
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class WinsockInitializeException : WinsockException
+	class WinsockInitializeException : public WinsockException
 	{
 	public:
 		WinsockInitializeException()
@@ -64,7 +65,7 @@ namespace task
 	//	Ошибка при очистке Winsock.
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class WinsockCleanupException : WinsockException
+	class WinsockCleanupException : public WinsockException
 	{
 	public:
 		WinsockCleanupException()
@@ -72,6 +73,23 @@ namespace task
 		{}
 	};
 
+
+	///////////////////////////////////////////////////////////////////////////
+	//
+	//	Ошибка при работе с сокетами Winsock, имеет нормер и описание, которые
+	//	узнаёт самостоятельно через WSAGetLastError().
+	//
+	///////////////////////////////////////////////////////////////////////////
+	class WinsockSocketException : public WinsockException
+	{
+	public:
+		WinsockSocketException()
+			: WinsockException(GetLastWinsockError().c_str())
+		{}
+
+	private:
+		std::string GetLastWinsockError();
+	};
 
 	///////////////////////////////////////////////////////////////////////////
 }

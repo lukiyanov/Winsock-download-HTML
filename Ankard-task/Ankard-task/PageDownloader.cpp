@@ -1,12 +1,13 @@
 #include "PageDownloader.h"
 #include "Exceptions.h"
-#include <winsock.h>
 #include <fstream>
+#include <sstream>
+
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include <winsock2.h>
+#pragma comment(lib, "Ws2_32.lib")
 
 using namespace task;
-using namespace std;
-
-#pragma comment(lib, "wsock32.lib")
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -14,7 +15,7 @@ using namespace std;
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-unsigned long GetServerAddress(const string& pageUrl)
+unsigned long GetServerAddress(const std::string& pageUrl)
 {
 	auto url = pageUrl.c_str();
 
@@ -25,60 +26,74 @@ unsigned long GetServerAddress(const string& pageUrl)
 		hostInfo = gethostbyname(url);								// maps.google.com
 
 	if (!hostInfo)
-		throw std::exception("TODO");	// TODO
+		throw WinsockSocketException();
 
 	return *((unsigned long*)hostInfo->h_addr);
 }
 
 // ----------------------------------------------------------------------------
-void PageDownloader::DownloadPageToDirectory(const string& pageUrl, const string& directory)
+void PageDownloader::DownloadPageToDirectory(const std::string& pageUrl, std::ostream& out)
 {
-	// Инициализируем сокет как TCP.
+	// Инициализируем сокет (TCP).
 	SOCKET connection = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (connection == INVALID_SOCKET)
-		throw std::exception("TODO");	// TODO
+		throw WinsockSocketException();
 
-	// Заполняем адрес сервера.
-	sockaddr_in server;
-	memset(&server, 0, sizeof(server));
-	server.sin_addr.s_addr = GetServerAddress(pageUrl);
-	server.sin_family = AF_INET;
-	server.sin_port = htons(80);
+	try
+	{
+		// Получаем имя хоста
+		// http://<имя_хоста>/.../...
+		std::string hostName = "shelek.com";	// TODO
 
-	// Устанавливаем соединение.
-	if (bool failed = connect(connection, (sockaddr*)& server, sizeof(server)); failed)
+		// Заполняем адрес сервера.
+		sockaddr_in server;
+		ZeroMemory(&server, sizeof(server));
+		server.sin_family = AF_INET;
+		server.sin_addr.s_addr = GetServerAddress(hostName);
+		server.sin_port = htons(80);
+
+		// Устанавливаем соединение.
+		if (bool failed = connect(connection, (sockaddr*)& server, sizeof(server)); failed)
+			throw WinsockSocketException();
+
+		// Отсылаем запрос на получение файла.
+		std::ostringstream ss;
+		ss << "GET "   << pageUrl << " HTTP/1.1\r\n"
+		   << "Host: " << "shelek.com" << "\r\n"
+		   << "\r\n";
+		auto request = ss.str();
+		if (SOCKET_ERROR == send(connection, request.c_str(), request.length(), 0))
+			throw WinsockSocketException();
+
+
+		// Получаем ответ. (TODO: вынести в отдельную функцию, как и отправку запроса)
+		{
+			const int bufsize = 4 * 1024;
+			static char buff[bufsize];
+			int received = recv(connection, buff, bufsize, 0);
+
+			// Получаем код результата. Если не 2хх, то не удалось загрузить.
+			// ...
+
+			// Находим размер файла, следующего за заголовком.
+			// ...
+
+			//for (int received = recv(connection, buff, bufsize, 0); received > 0; )
+			{
+				if (received == SOCKET_ERROR)
+					throw WinsockSocketException();
+				out.write(buff, received);
+			}
+			out.flush();
+		}
+
+		closesocket(connection);
+	}
+	catch (...)
 	{
 		closesocket(connection);
-		throw std::exception("Can't establish the connection");	// TODO
+		throw;
 	}
-
-	// Отсылаем запрос на получение файла.
-	char request[] =
-		"GET / HTTP/1.1\r\n"
-		"Host: www.101zenstories.com\r\n"
-		"Connection: close\r\n"
-		"\r\n";
-	send(connection, request, strlen(request), 0);
-
-	// Получаем ответ и заодно собираем по кусочкам запрошенный файл.
-	std::ofstream file("C:\\Users\\guest\\Documents\\GitHub\\test.html");
-
-	const int bufsize = 51200;
-	char buff[bufsize];
-	int received = recv(connection, buff, bufsize, 0);
-	file.write(buff, received);
-	file.flush();
-
-
-
-
-
-
-
-	closesocket(connection);
-
-	// TODO
-	//throw std::exception("TODO");
 }
 
 

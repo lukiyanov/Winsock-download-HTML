@@ -156,6 +156,7 @@
   <ItemGroup>
     <ClCompile Include="Ankard-task.cpp" />
     <ClCompile Include="CmdLineParser.cpp" />
+    <ClCompile Include="Exceptions.cpp" />
     <ClCompile Include="PageDownloader.cpp" />
   </ItemGroup>
   <ItemGroup>

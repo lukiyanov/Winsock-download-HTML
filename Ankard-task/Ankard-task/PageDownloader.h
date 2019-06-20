@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <ostream>
 
 namespace task
 {
@@ -11,11 +12,12 @@ namespace task
 	class PageDownloader
 	{
 	public:
-		// ...
-		//PageDownloader();
-
-		// ...
-		void DownloadPageToDirectory(const std::string& pageUrl, const std::string& directory);
+		// --------------------------------------------------------------------
+		// Скачивает html-страницу по протоколу HTTP (HTTPS не поддерживается)
+		// с адресом pageUrl и выводит её в указанный поток.
+		// В случае ошибок генерирует исключения, производные от WinsockException.
+		// --------------------------------------------------------------------
+		void DownloadPageToDirectory(const std::string& pageUrl, std::ostream& out);
 
 	private:
 

@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#include <fstream>
+#include <iostream>
 #include "CmdLineParser.h"
 #include "PageDownloader.h"
 
@@ -10,8 +11,9 @@ int main(int argc, char** argv)
 	{
 		CmdLineParser cmdLine(argc, argv);
 
+		std::ofstream file(cmdLine.GetDirectory() + "/page.html");
 		PageDownloader page;
-		page.DownloadPageToDirectory(cmdLine.GetUrl(), cmdLine.GetDirectory());
+		page.DownloadPageToDirectory(cmdLine.GetUrl(), file);
 	}
 	catch (std::exception& ex)
 	{
