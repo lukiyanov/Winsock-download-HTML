@@ -18,14 +18,17 @@ using namespace task;
 void SendRequest(SOCKET connection, std::string_view pageUrl, std::string_view hostName);
 
 // ----------------------------------------------------------------------------
-// Принимает запрошенный ранее файл и выводит его в поток, если не произошло никаких сбоев.
+// Принимает по HTTP запрошенный ранее файл и возвращает его в виде строки.
 // ----------------------------------------------------------------------------
-void ReceiveResponse(SOCKET connection, std::ostream& out);
-
-
+std::string ReceiveResponse(SOCKET connection);
 
 // ----------------------------------------------------------------------------
-void HttpDownloader::DownloadFile(std::ostream& out, std::string_view pageUrl)
+// Удаляет мусор до "<!DOCTYPE", если он есть. Если нет - не делает ничего.
+// ----------------------------------------------------------------------------
+void TrimFront(std::string& htmlSource);
+
+// ----------------------------------------------------------------------------
+std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 {
 	// Инициализируем сокет (TCP).
 	SOCKET connection = socket(AF_INET, SOCK_STREAM, 0);
@@ -50,10 +53,10 @@ void HttpDownloader::DownloadFile(std::ostream& out, std::string_view pageUrl)
 
 		// Скачиваем саму страницу.
 		SendRequest(connection, pageUrl, hostName);
-		ReceiveResponse(connection, out);
-		out.flush();
+		std::string source = ReceiveResponse(connection);
 
 		closesocket(connection);
+		return source;
 	}
 	catch (...)
 	{
@@ -78,9 +81,9 @@ void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, st
 
 	// Получаем код html-страницы.
 	ssTmp.clear();
-	DownloadFile(ssTmp, pageUrl);
-	string source = ssTmp.str();
-	
+	string source = DownloadFile(pageUrl);
+	TrimFront(source);	// костыль
+
 	// Сохраняем html-файл.
 	std::ofstream file(fullFilenameName);
 	file << source;
@@ -105,7 +108,7 @@ void SendRequest(SOCKET connection, std::string_view pageUrl, std::string_view h
 
 
 // ----------------------------------------------------------------------------
-void ReceiveResponse(SOCKET connection, std::ostream& out)
+std::string ReceiveResponse(SOCKET connection)
 {
 	const size_t bufsize = 512;
 	char buffer[bufsize];
@@ -126,10 +129,9 @@ void ReceiveResponse(SOCKET connection, std::ostream& out)
 		throw WinsockException("The ansver is not 2xx.");
 
 	// Добавляем первую считанную порцию к результату.
+	std::ostringstream source;
 	buffer[received] = '\0';
-	out << buffer;
-
-	// TODO: убрать заголовки из ответа
+	source << buffer;
 
 	// Считываем всё остальное.
 	do
@@ -138,12 +140,33 @@ void ReceiveResponse(SOCKET connection, std::ostream& out)
 		if (received >= 0)
 		{
 			buffer[received] = '\0';
-			out << buffer;
+			source << buffer;
 		}
 		else
 			throw WinsockSocketException();
 
 	} while (received);
+
+	// Избавляемся от заголовков.
+	auto result = source.str();
+	char rnrn[] = "\r\n\r\n";
+	auto pos = result.find(rnrn);
+	if (pos == std::string::npos)
+		throw WinsockException("Headers end is not found.");
+	auto start = pos + sizeof(rnrn) - 1;
+	result = result.substr(start);
+
+	return result;
+}
+
+// ----------------------------------------------------------------------------
+void TrimFront(std::string& htmlSource)
+{
+	auto pos = htmlSource.find("<!DOCTYPE");
+	if (pos == std::string::npos)
+		return;
+
+	htmlSource = htmlSource.substr(pos);
 }
 
 // ----------------------------------------------------------------------------
