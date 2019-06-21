@@ -1,9 +1,10 @@
 #include "WinsockUtils.h"
 #include "Exceptions.h"
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
-
 
 // ----------------------------------------------------------------------------
 unsigned long task::GetServerAddress(std::string_view hostName)
@@ -12,8 +13,8 @@ unsigned long task::GetServerAddress(std::string_view hostName)
 	auto url = hostNameTmp.c_str();
 
 	// Ёто IP?
-	if (auto ip = inet_addr(url); ip != INADDR_NONE)
-		return ip;
+	if (unsigned long result; inet_pton(AF_INET, url, &result) == 1)	// 1 == OK
+		return result;
 
 	// ≈сли не IP, то считаем что это им€ сервера.
 	hostent* hostInfo = gethostbyname(url);
@@ -24,5 +25,4 @@ unsigned long task::GetServerAddress(std::string_view hostName)
 
 
 // ----------------------------------------------------------------------------
-
 

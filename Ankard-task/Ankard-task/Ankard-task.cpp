@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 		CmdLineParser cmdLine(argc, argv);
 
 		HttpDownloader downloader;
-		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl());	// TODO: выбирать имя на оаснове адреса
+		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl());
 	}
 	catch (std::exception& ex)
 	{

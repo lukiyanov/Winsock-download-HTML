@@ -1,4 +1,4 @@
-#include "PageDownloader.h"
+#include "HttpDownloader.h"
 #include "Exceptions.h"
 using namespace task;
 

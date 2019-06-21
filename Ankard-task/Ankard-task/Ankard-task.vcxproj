@@ -157,7 +157,7 @@
     <ClCompile Include="Ankard-task.cpp" />
     <ClCompile Include="CmdLineParser.cpp" />
     <ClCompile Include="Exceptions.cpp" />
-    <ClCompile Include="PageDownloader.cpp" />
+    <ClCompile Include="HttpDownloader.cpp" />
     <ClCompile Include="StringUtils.cpp" />
     <ClCompile Include="WinsockInitializerAndCleaner.cpp" />
     <ClCompile Include="WinsockUtils.cpp" />
@@ -165,7 +165,7 @@
   <ItemGroup>
     <ClInclude Include="Exceptions.h" />
     <ClInclude Include="CmdLineParser.h" />
-    <ClInclude Include="PageDownloader.h" />
+    <ClInclude Include="HttpDownloader.h" />
     <ClInclude Include="StringUtils.h" />
     <ClInclude Include="WinsockUtils.h" />
   </ItemGroup>
