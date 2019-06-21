@@ -158,11 +158,16 @@
     <ClCompile Include="CmdLineParser.cpp" />
     <ClCompile Include="Exceptions.cpp" />
     <ClCompile Include="PageDownloader.cpp" />
+    <ClCompile Include="StringUtils.cpp" />
+    <ClCompile Include="WinsockInitializerAndCleaner.cpp" />
+    <ClCompile Include="WinsockUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Exceptions.h" />
     <ClInclude Include="CmdLineParser.h" />
     <ClInclude Include="PageDownloader.h" />
+    <ClInclude Include="StringUtils.h" />
+    <ClInclude Include="WinsockUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

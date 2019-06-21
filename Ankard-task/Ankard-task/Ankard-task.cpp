@@ -1,7 +1,6 @@
-﻿#include <fstream>
-#include <iostream>
+﻿#include <iostream>
 #include "CmdLineParser.h"
-#include "PageDownloader.h"
+#include "HttpDownloader.h"
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -11,9 +10,8 @@ int main(int argc, char** argv)
 	{
 		CmdLineParser cmdLine(argc, argv);
 
-		std::ofstream file(cmdLine.GetDirectory() + "/page.html");
-		PageDownloader page;
-		page.DownloadPageToDirectory(cmdLine.GetUrl(), file);
+		HttpDownloader downloader;
+		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl());	// TODO: выбирать имя на оаснове адреса
 	}
 	catch (std::exception& ex)
 	{

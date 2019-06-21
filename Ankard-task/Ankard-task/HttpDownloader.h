@@ -1,23 +1,34 @@
 #pragma once
-#include <string>
-#include <ostream>
+#include <string_view>
 
 namespace task
 {
 	///////////////////////////////////////////////////////////////////////////
 	//
 	//	Отвечает за скачивание страницы вместе с зависимостями.
+	//	В случае ошибок генерируют исключения, производные от WinsockException.
+	//	Во всех функциях url должен быть указан полностью, включая протокол, например:
+	//		http://123.45.67.8/some/page.html
+	//		http://qwerty.com/another/page/
+	//		http://qwerty.com/logo.jpg
+	//		http://qwerty.com/
 	//
 	///////////////////////////////////////////////////////////////////////////
-	class PageDownloader
+	class HttpDownloader
 	{
 	public:
 		// --------------------------------------------------------------------
-		// Скачивает html-страницу по протоколу HTTP (HTTPS не поддерживается)
-		// с адресом pageUrl и выводит её в указанный поток.
-		// В случае ошибок генерирует исключения, производные от WinsockException.
+		// Скачивает файл по указанному URL по протоколу HTTP и выводит
+		// его в поток out.
 		// --------------------------------------------------------------------
-		void DownloadPageToDirectory(const std::string& pageUrl, std::ostream& out);
+		void DownloadFile(std::ostream& out, std::string_view pageUrl);
+
+		// --------------------------------------------------------------------
+		// Скачивает по указанному URL HTML-страницу по протоколу HTTP и сохраняет
+		// её как difectory/fileName.html
+		// Также в папку difectory/fileName будут скачаны зависимые объекты.
+		// --------------------------------------------------------------------
+		void DownloadPageWithDependencies(std::string_view difectory, std::string_view fileName, std::string_view pageUrl);
 
 	private:
 
