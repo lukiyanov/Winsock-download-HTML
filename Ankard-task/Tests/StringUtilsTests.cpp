@@ -1,7 +1,7 @@
 #include "pch.h"
 #include <CppUnitTest.h>
 
-// Тестируемый класс и необходимые для этого зависимости.
+// Тестируемый файл и необходимые для этого зависимости.
 #include <StringUtils.h>
 #include <Exceptions.h>
 
@@ -10,7 +10,7 @@ using namespace task;
 
 namespace Tests
 {
-	TEST_CLASS(CmdLineTests)
+	TEST_CLASS(StringUtilsTests)
 	{
 	public:
 		TEST_METHOD(ToLower_Test)

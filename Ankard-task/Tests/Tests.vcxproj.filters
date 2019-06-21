@@ -18,10 +18,10 @@
     <ClCompile Include="pch.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="CmdLineTests.cpp">
+    <ClCompile Include="StringUtilsTests.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="StringUtilsTests.cpp">
+    <ClCompile Include="CmdLineParserTests.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>

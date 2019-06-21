@@ -23,6 +23,5 @@ unsigned long task::GetServerAddress(std::string_view hostName)
 	return *((unsigned long*)hostInfo->h_addr);
 }
 
-
 // ----------------------------------------------------------------------------
 
