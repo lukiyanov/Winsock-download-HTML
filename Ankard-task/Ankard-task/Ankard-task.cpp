@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include "CmdLineParser.h"
 #include "HttpDownloader.h"
+#include "TagRecognizer.h"
 
 // ----------------------------------------------------------------------------
 int main(int argc, char** argv)
@@ -11,6 +12,11 @@ int main(int argc, char** argv)
 		CmdLineParser cmdLine(argc, argv);
 
 		HttpDownloader downloader;
+		// Настраиваем, какие зависимости нужно скачивать.
+		downloader.AddDependencyRecognizer(tags::link);
+		downloader.AddDependencyRecognizer(tags::script);
+		downloader.AddDependencyRecognizer(tags::img);
+		// Собственно, скачиваем.
 		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl());
 	}
 	catch (std::exception& ex)

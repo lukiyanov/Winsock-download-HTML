@@ -167,6 +167,7 @@
     <ClInclude Include="CmdLineParser.h" />
     <ClInclude Include="HttpDownloader.h" />
     <ClInclude Include="StringUtils.h" />
+    <ClInclude Include="TagRecognizer.h" />
     <ClInclude Include="WinsockUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

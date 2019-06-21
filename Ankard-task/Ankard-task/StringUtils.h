@@ -1,5 +1,7 @@
 #pragma once
 #include <string_view>
+#include <list>
+#include "TagRecognizer.h"
 
 namespace task
 {
@@ -23,4 +25,7 @@ namespace task
 	std::string_view GetHttpHostNameByUrl(std::string_view pageUrl);
 
 	// --------------------------------------------------------------------
+	// Находит все подстроки в соответствии с заданными паттернами.
+	// --------------------------------------------------------------------
+	std::list<std::string> ExtractPatternsFromSource(const std::string& source, const std::list<TagRecognizer>& recognizers);
 }

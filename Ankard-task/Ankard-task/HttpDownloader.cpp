@@ -28,6 +28,18 @@ std::string ReceiveResponse(SOCKET connection);
 void TrimFront(std::string& htmlSource);
 
 // ----------------------------------------------------------------------------
+// Cкачивает документы, от которых зависит fileName.
+// ----------------------------------------------------------------------------
+void DownloadDependencies(std::string_view difectory, std::string_view fileName, std::string_view pageUrl);
+
+
+// ----------------------------------------------------------------------------
+void task::HttpDownloader::AddDependencyRecognizer(const TagRecognizer& tagRecognizer)
+{
+	m_recognizers.push_back(tagRecognizer);
+}
+
+// ----------------------------------------------------------------------------
 std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 {
 	// Инициализируем сокет (TCP).
@@ -89,7 +101,12 @@ void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, st
 	file << source;
 	file.flush();
 
-	// TODO: анализируем и скачиваем зависимости
+	// Cкачиваем документы, от которых зависит данный.
+	// 1. Извлекаем из html все зависимости.
+	auto extractedPaths = ExtractPatternsFromSource(source, m_recognizers);
+
+	// 2. Каждую из них пытаемся скачать как отдельный файл, по очереди.
+	// TODO
 }
 
 

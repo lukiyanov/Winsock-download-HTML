@@ -1,5 +1,7 @@
 #pragma once
 #include <string_view>
+#include <list>
+#include "TagRecognizer.h"
 
 namespace task
 {
@@ -17,6 +19,11 @@ namespace task
 	class HttpDownloader
 	{
 	public:
+		// --------------------------------------------------------------------
+		// Добавляет распознаватель тега.
+		// --------------------------------------------------------------------
+		void AddDependencyRecognizer(const TagRecognizer& tagRecognizer);
+
 		// --------------------------------------------------------------------
 		// Скачивает файл по указанному URL по протоколу HTTP и возвращает его
 		// содержимое в виде строки.
@@ -48,6 +55,9 @@ namespace task
 
 		static WinsockInitializerAndCleaner m_winsockInitializerAndCleaner;
 		// --------------------------------------------------------------------
+
+	private:
+		std::list<TagRecognizer> m_recognizers;
 	};
 
 	///////////////////////////////////////////////////////////////////////////
