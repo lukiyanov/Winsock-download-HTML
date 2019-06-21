@@ -1,9 +1,9 @@
 #include "HttpDownloader.h"
 #include "Exceptions.h"
+#include "StringUtils.h"
+#include "WinsockUtils.h"
 #include <fstream>
 #include <sstream>
-#include <vector>
-#include <algorithm>
 #include <regex>
 
 #include <winsock2.h>
@@ -14,6 +14,83 @@ using namespace task;
 
 // ----------------------------------------------------------------------------
 // Отсылка запроса на получение файла.
+// ----------------------------------------------------------------------------
+void SendRequest(SOCKET connection, std::string_view pageUrl, std::string_view hostName);
+
+// ----------------------------------------------------------------------------
+// Принимает запрошенный ранее файл и выводит его в поток, если не произошло никаких сбоев.
+// ----------------------------------------------------------------------------
+void ReceiveResponse(SOCKET connection, std::ostream& out);
+
+
+
+// ----------------------------------------------------------------------------
+void HttpDownloader::DownloadFile(std::ostream& out, std::string_view pageUrl)
+{
+	// Инициализируем сокет (TCP).
+	SOCKET connection = socket(AF_INET, SOCK_STREAM, 0);
+	if (connection == INVALID_SOCKET)
+		throw WinsockSocketException();
+
+	try
+	{
+		// Получаем имя хоста.
+		auto hostName = GetHttpHostNameByUrl(pageUrl);
+
+		// Заполняем адрес сервера.
+		sockaddr_in server;
+		ZeroMemory(&server, sizeof(server));
+		server.sin_family = AF_INET;
+		server.sin_addr.s_addr = GetServerAddress(hostName);
+		server.sin_port = htons(80);
+
+		// Устанавливаем соединение.
+		if (bool failed = connect(connection, (sockaddr*)& server, sizeof(server)); failed)
+			throw WinsockSocketException();
+
+		// Скачиваем саму страницу.
+		SendRequest(connection, pageUrl, hostName);
+		ReceiveResponse(connection, out);
+		out.flush();
+
+		closesocket(connection);
+	}
+	catch (...)
+	{
+		closesocket(connection);
+		throw;
+	}
+}
+
+
+// ----------------------------------------------------------------------------
+void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, std::string_view fileName, std::string_view pageUrl)
+{
+	using std::string;
+
+	// Определяем имена на диске файла и папки для него.
+	std::ostringstream ssTmp;
+	ssTmp << difectory << '/' << fileName;
+	string fullSubirectoryName = ssTmp.str();	// Полное имя папки куда будем складировать зависимости.
+
+	ssTmp << ".html";
+	string fullFilenameName = ssTmp.str();	// Полное имя html-файла на диске.
+
+	// Получаем код html-страницы.
+	ssTmp.clear();
+	DownloadFile(ssTmp, pageUrl);
+	string source = ssTmp.str();
+	
+	// Сохраняем html-файл.
+	std::ofstream file(fullFilenameName);
+	file << source;
+	file.flush();
+
+	// TODO: анализируем и скачиваем зависимости
+}
+
+
+// ----------------------------------------------------------------------------
 void SendRequest(SOCKET connection, std::string_view pageUrl, std::string_view hostName)
 {
 	std::ostringstream ss;
@@ -26,9 +103,9 @@ void SendRequest(SOCKET connection, std::string_view pageUrl, std::string_view h
 		throw WinsockSocketException();
 }
 
+
 // ----------------------------------------------------------------------------
-// Возвращает текствовое представление файла, если не произошло никаких сбоев.
-std::string ReceivePage(SOCKET connection)
+void ReceiveResponse(SOCKET connection, std::ostream& out)
 {
 	const size_t bufsize = 512;
 	char buffer[bufsize];
@@ -50,8 +127,9 @@ std::string ReceivePage(SOCKET connection)
 
 	// Добавляем первую считанную порцию к результату.
 	buffer[received] = '\0';
-	std::ostringstream source;
-	source << buffer;
+	out << buffer;
+
+	// TODO: убрать заголовки из ответа
 
 	// Считываем всё остальное.
 	do
@@ -60,72 +138,12 @@ std::string ReceivePage(SOCKET connection)
 		if (received >= 0)
 		{
 			buffer[received] = '\0';
-			source << buffer;
+			out << buffer;
 		}
 		else
 			throw WinsockSocketException();
 
 	} while (received);
-
-	return source.str();
-}
-
-// ----------------------------------------------------------------------------
-inline void WriteSourceToStream(std::ostream& out, const std::string& what)
-{
-	out << what;
-	out.flush();
-}
-
-
-
-// ----------------------------------------------------------------------------
-void HttpDownloader::DownloadFile(std::ostream& out, std::string_view pageUrl)
-{
-
-}
-
-// ----------------------------------------------------------------------------
-void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, std::string_view fileName, std::string_view pageUrl)
-{
-	/*
-	// Инициализируем сокет (TCP).
-	SOCKET connection = socket(AF_INET, SOCK_STREAM, 0);
-	if (connection == INVALID_SOCKET)
-		throw WinsockSocketException();
-
-	try
-	{
-		// Получаем имя хоста.
-		auto hostName = GetHostNameByUrl(pageUrl);
-
-		// Заполняем адрес сервера.
-		sockaddr_in server;
-		ZeroMemory(&server, sizeof(server));
-		server.sin_family = AF_INET;
-		server.sin_addr.s_addr = GetServerAddress(hostName);
-		server.sin_port = htons(80);
-
-		// Устанавливаем соединение.
-		if (bool failed = connect(connection, (sockaddr*)& server, sizeof(server)); failed)
-			throw WinsockSocketException();
-
-		// Скачиваем саму страницу.
-		SendRequest(connection, pageUrl, hostName);
-		std::string pageSource = ReceivePage(connection);
-		WriteSourceToStream(out, pageSource);
-
-		// Обрабатываем зависимости.
-		// TODO
-
-		closesocket(connection);
-	}
-	catch (...)
-	{
-		closesocket(connection);
-		throw;
-	}
-	*/
 }
 
 // ----------------------------------------------------------------------------

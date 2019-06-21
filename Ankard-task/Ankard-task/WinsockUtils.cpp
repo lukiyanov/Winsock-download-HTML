@@ -1,7 +1,7 @@
 #include "WinsockUtils.h"
 #include "Exceptions.h"
 
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS		// для gethostbyname
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #pragma comment(lib, "Ws2_32.lib")
