@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <regex>
+#include <filesystem>
 
 #include <winsock2.h>
 #pragma comment(lib, "Ws2_32.lib")
@@ -26,11 +27,6 @@ std::string ReceiveResponse(SOCKET connection);
 // Удаляет мусор до "<!DOCTYPE", если он есть. Если нет - не делает ничего.
 // ----------------------------------------------------------------------------
 void TrimFront(std::string& htmlSource);
-
-// ----------------------------------------------------------------------------
-// Cкачивает документы, от которых зависит fileName.
-// ----------------------------------------------------------------------------
-void DownloadDependencies(std::string_view difectory, std::string_view fileName, std::string_view pageUrl);
 
 
 // ----------------------------------------------------------------------------
@@ -102,11 +98,33 @@ void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, st
 	file.flush();
 
 	// Cкачиваем документы, от которых зависит данный.
-	// 1. Извлекаем из html все зависимости.
-	auto extractedPaths = ExtractPatternsFromSource(source, m_recognizers);
+	{
+		// Извлекаем из html все зависимости.
+		auto extractedPaths = ExtractPatternsFromSource(source, m_recognizers);
+		std::string hostName(GetHttpHostNameByUrl(pageUrl));
 
-	// 2. Каждую из них пытаемся скачать как отдельный файл, по очереди.
-	// TODO
+		// Если есть зависимости - создаём под них директорию.
+		if (!extractedPaths.empty())
+			std::filesystem::create_directory(fullSubirectoryName);
+
+		// Скачиваем зависимости.
+		for (auto path : extractedPaths)
+		{
+			auto absolutePath = GetAbsoluteHttpPath(path, hostName);
+			if (absolutePath.empty())
+				continue;
+
+			// Каждую из зависимостей пытаемся скачать как отдельный файл, по очереди.
+			try // Часть зависимостей может не скачаться по тем или иным причинам.
+			{
+				std::string fileSource = DownloadFile(absolutePath);
+				std::ofstream out(fullSubirectoryName + '/' + GetFileName(absolutePath));
+				out << fileSource;
+				out.close();
+			}
+			catch (const WinsockException&) {}	// Не делаем ничего. Не скачалось - и чёрт с ним. Переходим к следующему.
+		}
+	}
 }
 
 

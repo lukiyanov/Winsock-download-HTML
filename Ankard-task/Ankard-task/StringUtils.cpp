@@ -74,12 +74,12 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	{
 		std::string matchSubstr = (*i).str();
 
-		// Ищем, какое из выражений сработало.
+		// Что-то нашли. Ищем, какое из выражений сработало.
 		for (auto rec = regexForTags.cbegin(), end = regexForTags.cend(); rec != end; ++rec)
 		{
 			if (std::regex_match(matchSubstr, (*rec).first))
 			{
-				// Нашли. Теперь ищем подстроку с адресом внутри найденной подстроки.
+				// Нашли, какое. Теперь ищем атрибут с адресом внутри тега.
 				std::smatch match;
 				if (std::regex_search(matchSubstr, match, (*rec).second))
 				{
@@ -102,6 +102,38 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	}
 
 	return results;
+}
+
+// --------------------------------------------------------------------
+std::string task::GetAbsoluteHttpPath(const std::string& path, const std::string& hostName)
+{
+	// Каждую зависимость рассматриваем как один из четырёх случаев:
+	// 1. Относительный путь => добавляем "http://имя-хоста.com/".
+	// 2. Абсолютный путь HTTP => оставляем как есть.
+	// 3. Абсолютный путь HTTPS => меняем на HTTP и пытаемся скачать.
+	// 4. Абсолютный путь с другим протоколом => пропускаем.
+
+	auto protocolEndsPos = path.find("://");
+	if (protocolEndsPos == std::string::npos)
+		return std::string("http://") + hostName + '/' + path;
+
+	auto protocol = path.substr(0, protocolEndsPos);
+	if (protocol == "http")
+		return path;
+	else if (protocol == "https")
+		return std::string("http") + path.substr(protocolEndsPos);
+
+	return std::string();
+}
+
+// --------------------------------------------------------------------
+std::string task::GetFileName(const std::string& path)
+{
+	auto lastSlash = path.find_last_of('/');
+	if (lastSlash == std::string::npos)
+		return path;
+
+	return path.substr(lastSlash + 1);
 }
 
 // --------------------------------------------------------------------

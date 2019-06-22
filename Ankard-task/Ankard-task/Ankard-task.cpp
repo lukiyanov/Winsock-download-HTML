@@ -19,7 +19,7 @@ int main(int argc, char** argv)
 		// Собственно, скачиваем.
 		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl());
 	}
-	catch (std::exception& ex)
+	catch (const std::exception& ex)
 	{
 		std::cout << "An exception has been raised.\n" << ex.what() << std::endl;
 		return 1;
