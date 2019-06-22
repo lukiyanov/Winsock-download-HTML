@@ -2,6 +2,9 @@
 
 *.d
 *.txt
+*.js
+*.css
+*.html
 
 # Compiled Object files
 
