@@ -1,12 +1,13 @@
-#include "StringUtils.h"
+п»ї#include "StringUtils.h"
 #include "Exceptions.h"
 #include <algorithm>
 #include <string>
 #include <sstream>
-#include <regex>
 using namespace task;
 
-#pragma comment(linker, "/STACK:10485760")	// для regex_search()
+//#define _REGEX_MAX_STACK_COUNT 10000
+#include <regex>
+//#pragma comment(linker, "/STACK:10000000")	// РґР»СЏ regex - РѕРЅ РІРµСЃСЊРјР° РїСЂРѕР¶РѕСЂР»РёРІ.
 
 // --------------------------------------------------------------------
 std::string task::ToLower(std::string_view str)
@@ -20,14 +21,14 @@ std::string task::ToLower(std::string_view str)
 std::string_view task::GetHttpHostNameByUrl(std::string_view pageUrl)
 {
 	static const char expectedPrefix[] = "http://";
-	static const size_t expectedPrefixLength = sizeof(expectedPrefix) - 1; // -1, т.к. '\0' считать не нужно.
+	static const size_t expectedPrefixLength = sizeof(expectedPrefix) - 1; // -1, С‚.Рє. '\0' СЃС‡РёС‚Р°С‚СЊ РЅРµ РЅСѓР¶РЅРѕ.
 
-	// 1. Проверяем наличие префикса "http://". Если такого нет => неверный формат.
+	// 1. РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РїСЂРµС„РёРєСЃР° "http://". Р•СЃР»Рё С‚Р°РєРѕРіРѕ РЅРµС‚ => РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚.
 	auto prefix = ToLower(pageUrl.substr(0, expectedPrefixLength));
 	if (prefix != expectedPrefix)
 		throw InvalidUrlFormat();
 
-	// 2. Ищем первую "/" слева. Не нашли => адрес сервера до конца строки, нашли => адрес - до неё.
+	// 2. РС‰РµРј РїРµСЂРІСѓСЋ "/" СЃР»РµРІР°. РќРµ РЅР°С€Р»Рё => Р°РґСЂРµСЃ СЃРµСЂРІРµСЂР° РґРѕ РєРѕРЅС†Р° СЃС‚СЂРѕРєРё, РЅР°С€Р»Рё => Р°РґСЂРµСЃ - РґРѕ РЅРµС‘.
 	auto slashPos = pageUrl.find('/', expectedPrefixLength);
 	if (slashPos == std::string::npos)
 	{
@@ -46,29 +47,44 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	if (recognizers.empty())
 		return results;
 
-	// Строим полное regex-выражение для поиска всех тегов.
+	// Р”Р»СЏ РєР°Р¶РґРѕРіРѕ РёР· РёСЃРєРѕРјС‹С… С‚РµРіРѕРІ, С‡С‚РѕР±С‹ РїРѕРЅСЏС‚СЊ, РєР°РєРѕР№ РёР· РЅРёС… РґР°Р» РјР°С‚С‡.
+	std::list<std::pair<std::regex, std::regex>> regexForTags;
+
+	// РЎС‚СЂРѕРёРј РїРѕР»РЅРѕРµ regex-РІС‹СЂР°Р¶РµРЅРёРµ РґР»СЏ РїРѕРёСЃРєР° РІСЃРµС… С‚РµРіРѕРІ.
 	std::ostringstream fullRegex;
 	auto recognizer = recognizers.cbegin();
+	regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern));
 	fullRegex << "(" << (*recognizer).outerPattern << ")";
 	recognizer++;
 
 	for (; recognizer != recognizers.cend(); recognizer++)
 	{
 		fullRegex << "|(" << (*recognizer).outerPattern << ")";
+
+		regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern));
+	}
+	
+
+	// РС‰РµРј (РЅРµР·Р°РІРёСЃРёРјРѕ РѕС‚ СЂРµРіРёСЃС‚СЂР°).
+	std::regex xRule(fullRegex.str(), std::regex::icase);
+	auto sourceBegin = std::sregex_iterator(source.begin(), source.end(), xRule);
+	auto sourceEnd   = std::sregex_iterator();
+
+	for (std::sregex_iterator i = sourceBegin; i != sourceEnd; ++i) {
+		std::string matchSubstr = (*i).str();
+
+		// РС‰РµРј, РєР°РєРѕРµ РёР· РІС‹СЂР°Р¶РµРЅРёР№ СЃСЂР°Р±РѕС‚Р°Р»Рѕ.
+		for (auto rec = regexForTags.cbegin(), end = regexForTags.cend(); rec != end; ++rec)
+		{
+			if (std::regex_match(matchSubstr, (*rec).first))
+			{
+				// РќР°С€Р»Рё. РўРµРїРµСЂСЊ РёС‰РµРј РїРѕРґСЃС‚СЂРѕРєСѓ СЃ Р°РґСЂРµСЃРѕРј РІРЅСѓС‚СЂРё РЅР°Р№РґРµРЅРЅРѕР№ РїРѕРґСЃС‚СЂРѕРєРё.
+				//(*rec).second
+			}
+		}
 	}
 
-	// Ищем.
-	std::smatch match;
-	std::regex xRule(fullRegex.str());
-
-	std::string text = source;
-	while (std::regex_search(text, match, xRule)) {
-		std::string matching = match[0];
-
-		// TODO: нашли подходящий тег, надо обработать.
-
-		text = match.suffix().str();
-	}
+	return results;
 }
 
 // --------------------------------------------------------------------

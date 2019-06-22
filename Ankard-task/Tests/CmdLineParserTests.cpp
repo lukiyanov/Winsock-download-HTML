@@ -5,8 +5,6 @@
 #include <CmdLineParser.h>
 #include <Exceptions.h>
 
-#pragma comment(lib, "CmdLineParser.obj")
-
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 using namespace task;
 using namespace std;

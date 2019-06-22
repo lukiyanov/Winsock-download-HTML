@@ -11,8 +11,8 @@ namespace task
 
 	namespace tags
 	{
-		inline TagRecognizer link   { R"(<link (.|\r|\n)*?\/>)", R"(...)" };
-		inline TagRecognizer script { R"(<script (.|\r|\n)*?>)", R"(...)" };
-		inline TagRecognizer img    { R"(<img (.|\r|\n)*?>)",    R"(...)" };
+		inline TagRecognizer link   { R"(<link .*?\/>)", R"(href *= *((".+")|('.+')))" };
+		inline TagRecognizer script { R"(<script .*?>)", R"(src *= *((".+")|('.+')))" };
+		inline TagRecognizer img    { R"(<img .*?>)",    R"(src *= *((".+")|('.+')))" };
 	}
 }
