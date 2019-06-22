@@ -53,15 +53,15 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	// Строим полное regex-выражение для поиска всех тегов.
 	std::ostringstream fullRegex;
 	auto recognizer = recognizers.cbegin();
-	regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern));
+	regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern)));
 	fullRegex << "(" << (*recognizer).outerPattern << ")";
-	recognizer++;
+	++recognizer;
 
-	for (; recognizer != recognizers.cend(); recognizer++)
+	for (; recognizer != recognizers.cend(); ++recognizer)
 	{
 		fullRegex << "|(" << (*recognizer).outerPattern << ")";
 
-		regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern));
+		regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern)));
 	}
 	
 
@@ -70,7 +70,8 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	auto sourceBegin = std::sregex_iterator(source.begin(), source.end(), xRule);
 	auto sourceEnd   = std::sregex_iterator();
 
-	for (std::sregex_iterator i = sourceBegin; i != sourceEnd; ++i) {
+	for (std::sregex_iterator i = sourceBegin; i != sourceEnd; ++i)
+	{
 		std::string matchSubstr = (*i).str();
 
 		// Ищем, какое из выражений сработало.
@@ -79,7 +80,23 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 			if (std::regex_match(matchSubstr, (*rec).first))
 			{
 				// Нашли. Теперь ищем подстроку с адресом внутри найденной подстроки.
-				//(*rec).second
+				std::smatch match;
+				if (std::regex_search(matchSubstr, match, (*rec).second))
+				{
+					// Ок, нашли атрибут, содержащий адрес.
+					std::string attribute = match.str();
+
+					// Наконец, выделяем сам адрес.
+					if (std::regex_search(attribute, match, std::regex(R"(((".+?")|('.+?')))")))
+					{
+						std::string address = match.str();
+						// Избавляемся от кавычек окончательно.
+						address = address.substr(1, address.length() - 2);
+						results.push_back(address);
+					}
+				}
+
+				break;	// Раз этот сработал, остальные теги пропускаем.
 			}
 		}
 	}
