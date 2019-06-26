@@ -41,3 +41,4 @@
 *.db-shm
 *.db-wal
 *.obj.enc
+*.user
