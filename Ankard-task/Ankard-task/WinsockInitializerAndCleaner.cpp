@@ -6,24 +6,24 @@ using namespace task;
 #pragma comment(lib, "Ws2_32.lib")
 
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 HttpDownloader::WinsockInitializerAndCleaner HttpDownloader::m_winsockInitializerAndCleaner;
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 HttpDownloader::WinsockInitializerAndCleaner::WinsockInitializerAndCleaner()
 {
 	if (!IsWinsockInitialized())
 		InitializeWinsock();
 }
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 HttpDownloader::WinsockInitializerAndCleaner::~WinsockInitializerAndCleaner()
 {
 	if (IsWinsockInitialized())
 		CleanupWinsock();
 }
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 bool HttpDownloader::WinsockInitializerAndCleaner::IsWinsockInitialized()
 {
 	SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -34,7 +34,7 @@ bool HttpDownloader::WinsockInitializerAndCleaner::IsWinsockInitialized()
 	return true;
 }
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 void HttpDownloader::WinsockInitializerAndCleaner::InitializeWinsock()
 {
 	WSADATA wsaData;
@@ -46,11 +46,11 @@ void HttpDownloader::WinsockInitializerAndCleaner::InitializeWinsock()
 	}
 }
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 void HttpDownloader::WinsockInitializerAndCleaner::CleanupWinsock()
 {
 	if (WSACleanup())
 		throw WinsockCleanupException();
 }
 
-// ----------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------

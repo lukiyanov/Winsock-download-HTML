@@ -5,11 +5,9 @@
 #include <sstream>
 using namespace task;
 
-//#define _REGEX_MAX_STACK_COUNT 10000
 #include <regex>
-//#pragma comment(linker, "/STACK:10000000")	// для regex - он весьма прожорлив.
 
-// --------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::string task::ToLower(std::string_view str)
 {
 	std::string result(str);
@@ -17,7 +15,7 @@ std::string task::ToLower(std::string_view str)
 	return result;
 }
 
-// --------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::string_view task::GetHttpHostNameByUrl(std::string_view pageUrl)
 {
 	static const char expectedPrefix[] = "http://";
@@ -40,8 +38,10 @@ std::string_view task::GetHttpHostNameByUrl(std::string_view pageUrl)
 	return tmp;
 }
 
-// --------------------------------------------------------------------
-std::list<std::string> task::ExtractPatternsFromSource(const std::string& source, const std::list<TagRecognizer>& recognizers)
+// --------------------------------------------------------------------------------------------------------------------
+std::list<std::string> task::ExtractPatternsFromSource(
+	const std::string& source,
+	const std::list<TagRecognizer>& recognizers)
 {
 	std::list<std::string> results;
 	if (recognizers.empty())
@@ -61,7 +61,9 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	{
 		fullRegex << "|(" << (*recognizer).outerPattern << ")";
 
-		regexForTags.push_back(std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern)));
+		regexForTags.push_back(
+			std::pair(std::regex((*recognizer).outerPattern), std::regex((*recognizer).innerPattern))
+		);
 	}
 	
 
@@ -104,7 +106,7 @@ std::list<std::string> task::ExtractPatternsFromSource(const std::string& source
 	return results;
 }
 
-// --------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::string task::GetAbsoluteHttpPath(const std::string& path, const std::string& hostName)
 {
 	// Каждую зависимость рассматриваем как один из четырёх случаев:
@@ -126,7 +128,7 @@ std::string task::GetAbsoluteHttpPath(const std::string& path, const std::string
 	return std::string();
 }
 
-// --------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 std::string task::GetFileName(const std::string& path)
 {
 	auto lastSlash = path.find_last_of('/');
@@ -136,4 +138,4 @@ std::string task::GetFileName(const std::string& path)
 	return path.substr(lastSlash + 1);
 }
 
-// --------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------

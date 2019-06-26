@@ -14,6 +14,7 @@ namespace Tests
 	{
 	public:
 
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(ToLower_Test)
 		{
 			using std::string;
@@ -22,6 +23,7 @@ namespace Tests
 			Assert::AreEqual(string(""),            ToLower(""));
 		}
 
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(GetHttpHostNameByUrl_Test)
 		{
 			using std::string_view;
@@ -36,6 +38,7 @@ namespace Tests
 			});
 		}
 
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(GetAbsoluteHttpPath_Test)
 		{
 			using std::string;
@@ -45,6 +48,7 @@ namespace Tests
 			Assert::AreEqual(string(""),			       GetAbsoluteHttpPath("tln://asdf",   "host.ru")); // Другой протокол -> пропуск
 		}
 
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(GetFileName_Test)
 		{
 			using std::string;
@@ -54,6 +58,7 @@ namespace Tests
 			Assert::AreEqual(string("file.css.txt"), GetFileName("http://qwerty.com/asdf/asdr/file.css.txt"));
 		}
 
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(ExtractPatternsFromSource_Test)
 		{
 			using std::string;
@@ -63,11 +68,15 @@ namespace Tests
 				tagList.push_back(tags::link);
 				tagList.push_back(tags::img);
 				tagList.push_back(tags::script);
-				auto res = ExtractPatternsFromSource("efsdfdsfsdfdsf<img sdfdsfd src =  'THIS'ssfds/>sdfdsfsd<link s3r23f href='that'2323d/>", tagList);
+				auto res = ExtractPatternsFromSource(
+					"efsdfdsfsdfdsf<img sdfdsfd src =  'THIS'ssfds/>sdfdsfsd<link s3r23f href='that'2323d/>",
+					tagList);
 				Assert::AreEqual(size_t(2), res.size());
 				Assert::AreEqual(string("THIS"), res.front());
 				Assert::AreEqual(string("that"), res.back());
 			}
 		}
+
+		// ------------------------------------------------------------------------------------------------------------
 	};
 }

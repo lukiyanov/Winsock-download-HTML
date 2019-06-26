@@ -14,6 +14,8 @@ namespace Tests
 	TEST_CLASS(HttpDownloaderTests)
 	{
 	public:
+
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(DownloadFile_Test)
 		{
 			HttpDownloader downloader;
@@ -23,6 +25,7 @@ namespace Tests
 			Assert::IsTrue(source.find("<html>") != std::string::npos);
 		}
 
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(DownloadPageWithDependencies_Test)
 		{
 			HttpDownloader downloader;
@@ -41,4 +44,6 @@ namespace Tests
 			Assert::IsTrue(std::filesystem::exists("../page/animate.min.css"));
 		}
 	};
+
+	// ------------------------------------------------------------------------------------------------------------
 }

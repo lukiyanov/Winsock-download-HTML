@@ -14,6 +14,8 @@ namespace Tests
 	TEST_CLASS(CmdLineParserTests)
 	{
 	public:
+
+		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(CmdLineParser_Test)
 		{
 			Assert::ExpectException<CommandLineException>([]() {
@@ -43,5 +45,7 @@ namespace Tests
 			Assert::AreEqual(string("123"), parser.GetUrl());
 			Assert::AreEqual(string("456"), parser.GetDirectory());
 		}
+
+		// ------------------------------------------------------------------------------------------------------------
 	};
 }
