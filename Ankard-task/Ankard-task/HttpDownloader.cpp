@@ -51,16 +51,13 @@ std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 		auto hostName = GetHttpHostNameByUrl(pageUrl);
 
 		// Заполняем адрес сервера.
-		sockaddr_in server;
-		/// Можно написать просто sockaddr_in server = {0};
-		ZeroMemory(&server, sizeof(server));
+		sockaddr_in server = {0};
 		server.sin_family = AF_INET;
 		server.sin_addr.s_addr = GetServerAddress(hostName);
 		server.sin_port = htons(80);
 
 		// Устанавливаем соединение.
-		/// connect возвращает на bool а int, в случае ошибки SOCKET_ERROR
-		if (bool failed = connect(connection, (sockaddr*)& server, sizeof(server)); failed)
+		if (SOCKET_ERROR == connect(connection, (sockaddr*)& server, sizeof(server)))
 			throw WinsockSocketException();
 
 		// Скачиваем саму страницу.
@@ -79,7 +76,6 @@ std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 
 
 // --------------------------------------------------------------------------------------------------------------------
-/// Слишком длинная строка больше 120
 void HttpDownloader::DownloadPageWithDependencies(
 	std::string_view difectory,
 	std::string_view fileName,
@@ -90,8 +86,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 	// Определяем имена на диске файла и папки для него.
 	std::ostringstream ssTmp;
 	ssTmp << difectory << '/' << fileName;
-	/// Опечатка в имени
-	string fullSubirectoryName = ssTmp.str();	// Полное имя папки куда будем складировать зависимости.
+	string fullSubdirectoryName = ssTmp.str();	// Полное имя папки куда будем складировать зависимости.
 
 	ssTmp << ".html";
 	string fullFilenameName = ssTmp.str();	// Полное имя html-файла на диске.
@@ -99,8 +94,6 @@ void HttpDownloader::DownloadPageWithDependencies(
 	// Получаем код html-страницы.
 	ssTmp.clear();
 	string source = DownloadFile(pageUrl);
-	/// Зачем нужен этот костыль я не понял
-	TrimFront(source);	// костыль
 
 	// Сохраняем html-файл.
 	std::ofstream file(fullFilenameName);
@@ -115,7 +108,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 
 		// Если есть зависимости - создаём под них директорию.
 		if (!extractedPaths.empty())
-			std::filesystem::create_directory(fullSubirectoryName);
+			std::filesystem::create_directory(fullSubdirectoryName);
 
 		// Скачиваем зависимости.
 		for (auto path : extractedPaths)
@@ -128,7 +121,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 			try // Часть зависимостей может не скачаться по тем или иным причинам.
 			{
 				std::string fileSource = DownloadFile(absolutePath);
-				std::ofstream out(fullSubirectoryName + '/' + GetFileName(absolutePath));
+				std::ofstream out(fullSubdirectoryName + '/' + GetFileName(absolutePath));
 				out << fileSource;
 				out.close();
 			}
@@ -201,8 +194,7 @@ std::string ReceiveResponse(SOCKET connection)
 	auto pos = result.find(rnrn);
 	if (pos == std::string::npos)
 		throw WinsockException("Headers end is not found.");
-	/// Может strlen вместо sizeof(rnrn) - 1
-	auto start = pos + sizeof(rnrn) - 1;
+	auto start = pos + strlen(rnrn);
 	result = result.substr(start);
 
 	return result;
