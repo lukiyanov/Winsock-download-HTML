@@ -36,9 +36,11 @@ void task::HttpDownloader::AddDependencyRecognizer(const TagRecognizer& tagRecog
 }
 
 // ----------------------------------------------------------------------------
+/// Думаю эта функция будет работать неправильно если файл будет не текстовый, например, картинка.
 std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 {
 	// Инициализируем сокет (TCP).
+	/// Не лучше ли использовать смарт поинтер?
 	SOCKET connection = socket(AF_INET, SOCK_STREAM, 0);
 	if (connection == INVALID_SOCKET)
 		throw WinsockSocketException();
@@ -50,12 +52,14 @@ std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 
 		// Заполняем адрес сервера.
 		sockaddr_in server;
+		/// Можно написать просто sockaddr_in server = {0};
 		ZeroMemory(&server, sizeof(server));
 		server.sin_family = AF_INET;
 		server.sin_addr.s_addr = GetServerAddress(hostName);
 		server.sin_port = htons(80);
 
 		// Устанавливаем соединение.
+		/// connect возвращает на bool а int, в случае ошибки SOCKET_ERROR
 		if (bool failed = connect(connection, (sockaddr*)& server, sizeof(server)); failed)
 			throw WinsockSocketException();
 
@@ -75,6 +79,7 @@ std::string HttpDownloader::DownloadFile(std::string_view pageUrl)
 
 
 // ----------------------------------------------------------------------------
+/// Слишком длинная строка больше 120
 void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, std::string_view fileName, std::string_view pageUrl)
 {
 	using std::string;
@@ -82,6 +87,7 @@ void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, st
 	// Определяем имена на диске файла и папки для него.
 	std::ostringstream ssTmp;
 	ssTmp << difectory << '/' << fileName;
+	/// Опечатка в имени
 	string fullSubirectoryName = ssTmp.str();	// Полное имя папки куда будем складировать зависимости.
 
 	ssTmp << ".html";
@@ -90,6 +96,7 @@ void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, st
 	// Получаем код html-страницы.
 	ssTmp.clear();
 	string source = DownloadFile(pageUrl);
+	/// Зачем нужен этот костыль я не понял
 	TrimFront(source);	// костыль
 
 	// Сохраняем html-файл.
@@ -122,6 +129,7 @@ void HttpDownloader::DownloadPageWithDependencies(std::string_view difectory, st
 				out << fileSource;
 				out.close();
 			}
+			/// Совсем игнорировать не очень хорошо, хотя бы информировать пользователя
 			catch (const WinsockException&) {}	// Не делаем ничего. Не скачалось - и чёрт с ним. Переходим к следующему.
 		}
 	}
@@ -137,7 +145,7 @@ void SendRequest(SOCKET connection, std::string_view pageUrl, std::string_view h
 		<< "Connection: close\r\n"
 		<< "\r\n";
 	auto request = ss.str();
-	if (SOCKET_ERROR == send(connection, request.c_str(), request.length(), 0))
+	if (SOCKET_ERROR == send(connection, request.c_str(), static_cast<int>(request.length()), 0))
 		throw WinsockSocketException();
 }
 
@@ -157,6 +165,7 @@ std::string ReceiveResponse(SOCKET connection)
 
 	// Проверяем код из первой строки на наилчие кода 2хх.
 	// 30 символов - вполне достаточно для анализа первой строки.
+	/// А если в первый раз получим меньше чем необходимо для проверки?ё
 	std::string firstLine(buffer, buffer + min(30, received));
 
 	std::regex xSuccess(R"(HTTP\/[0-9]+\.[0-9]+\s+2[0-9]{2}(.|\r|\n)*)");
@@ -171,6 +180,7 @@ std::string ReceiveResponse(SOCKET connection)
 	// Считываем всё остальное.
 	do
 	{
+		/// Хотя в запросе есть CloseConnection, качать до закрытия сокета для http не очень хорошая идея, нужно использовать заголовок ContentSize
 		received = recv(connection, buffer, bufsize - 1, 0);
 		if (received >= 0)
 		{
@@ -188,6 +198,7 @@ std::string ReceiveResponse(SOCKET connection)
 	auto pos = result.find(rnrn);
 	if (pos == std::string::npos)
 		throw WinsockException("Headers end is not found.");
+	/// Может strlen вместо sizeof(rnrn) - 1
 	auto start = pos + sizeof(rnrn) - 1;
 	result = result.substr(start);
 
