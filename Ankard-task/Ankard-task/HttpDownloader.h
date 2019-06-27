@@ -1,6 +1,7 @@
 #pragma once
 #include <string_view>
 #include <list>
+#include <functional>
 #include "TagRecognizer.h"
 
 namespace task
@@ -25,20 +26,25 @@ namespace task
 		void AddDependencyRecognizer(const TagRecognizer& tagRecognizer);
 
 		// ------------------------------------------------------------------------------------------------------------
-		// Скачивает файл по указанному URL по протоколу HTTP и возвращает его
-		// содержимое в виде строки.
+		// Скачивает файл по указанному URL по протоколу HTTP и выводит его
+		// содержимое в указанный поток.
 		// ------------------------------------------------------------------------------------------------------------
-		std::string DownloadFile(std::string_view pageUrl);
+		void DownloadFile(std::string_view pageUrl, std::ostream& out);
 
 		// ------------------------------------------------------------------------------------------------------------
-		// Скачивает по указанному URL HTML-страницу по протоколу HTTP и сохраняет
+		// Скачивает по указанному URL (pageUrl) HTML-страницу по протоколу HTTP и сохраняет
 		// её как difectory/fileName.html
 		// Также в папку difectory/fileName будут скачаны зависимые объекты.
+		// Если какую-то из зависимостей скачать не удалось, вызывается failedDependencyDownloadProcessor
+		// с URI к документу, который не удалось скачать.
 		// ------------------------------------------------------------------------------------------------------------
 		void DownloadPageWithDependencies(
 			std::string_view difectory,
 			std::string_view fileName,
-			std::string_view pageUrl);
+			std::string_view pageUrl,
+			std::function<void(const std::string&)> failedDependencyDownloadProcessor
+		);
+
 
 	private:
 

@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <string>
 #include "CmdLineParser.h"
 #include "HttpDownloader.h"
 #include "TagRecognizer.h"
@@ -17,7 +18,11 @@ int main(int argc, char** argv)
 		downloader.AddDependencyRecognizer(tags::script);
 		downloader.AddDependencyRecognizer(tags::img);
 		// Собственно, скачиваем.
-		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl());
+		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl(),
+			[](const std::string& uri) {
+				std::cout << "Failed to download dependency: " << uri << std::endl;
+			}
+		);
 	}
 	catch (const std::exception& ex)
 	{

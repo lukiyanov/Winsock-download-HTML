@@ -1,6 +1,7 @@
 #include "pch.h"
 #include <CppUnitTest.h>
 #include <filesystem>
+#include <sstream>
 
 // Тестируемый класс и необходимые для этого зависимости.
 #include <HttpDownloader.h>
@@ -18,8 +19,10 @@ namespace Tests
 		// ------------------------------------------------------------------------------------------------------------
 		TEST_METHOD(DownloadFile_Test)
 		{
+			std::ostringstream ss;
 			HttpDownloader downloader;
-			std::string source = downloader.DownloadFile("http://shelek.com/view/pvo/98");
+			downloader.DownloadFile("http://shelek.com/view/pvo/98", ss);
+			std::string source = ss.str();
 
 			Assert::IsTrue(source.length() > 1024);	// Страница довольно большая.
 			Assert::IsTrue(source.find("<html>") != std::string::npos);
@@ -35,7 +38,8 @@ namespace Tests
 
 			std::filesystem::remove("../page.html");
 			std::filesystem::remove_all("../page");
-			downloader.DownloadPageWithDependencies("..", "page", "http://shelek.com/view/theory/151");
+			downloader.DownloadPageWithDependencies("..", "page", "http://shelek.com/view/theory/151",
+				[](const std::string& uri) {/* не делаем ничего */});
 
 			Assert::IsTrue(std::filesystem::exists("../page.html"));
 			Assert::IsTrue(std::filesystem::exists("../page"));
