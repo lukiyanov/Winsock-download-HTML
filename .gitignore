@@ -42,3 +42,4 @@
 *.db-wal
 *.obj.enc
 *.user
+Ankard-task\page\*

@@ -157,7 +157,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 void SendRequest(SOCKET connection, string_view pageUrl, string_view hostName)
 {
 	ostringstream ss;
-	ss << "GET " << pageUrl << " HTTP/1.1\r\n"
+	ss << "GET " << pageUrl << " HTTP/1.0\r\n"
 		<< "Host: " << hostName << "\r\n"
 		<< "Connection: close\r\n"
 		<< "\r\n";
