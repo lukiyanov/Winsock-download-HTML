@@ -45,10 +45,15 @@ pair<string, vector<char>> ReceiveHeaders(SOCKET connection);
 optional<size_t> ProcessHeaders(const string& headers);
 
 // --------------------------------------------------------------------------------------------------------------------
-// Скачивает из сокета и записывает в поток ровно byteCount байт.
-// Если в качестве byteCount передан std::nullopt, то скачивает данные до закрытия сокета.
+// Получает данные из сокета и записывает в поток ровно byteCount байт.
 // --------------------------------------------------------------------------------------------------------------------
-void DownloadToStream(SOCKET connection, std::ostream& out, optional<size_t> byteCount);
+void ReceiveBytes(SOCKET connection, std::ostream& out, size_t byteCount);
+
+// --------------------------------------------------------------------------------------------------------------------
+// Получает все данные из сокета до закрытия соединения и записывает их в поток.
+// --------------------------------------------------------------------------------------------------------------------
+void ReceiveBytesToEnd(SOCKET connection, std::ostream& out);
+
 
 
 
@@ -57,6 +62,7 @@ void task::HttpDownloader::AddDependencyRecognizer(const TagRecognizer& tagRecog
 {
 	m_recognizers.push_back(tagRecognizer);
 }
+
 
 // --------------------------------------------------------------------------------------------------------------------
 void HttpDownloader::DownloadFile(string_view pageUrl, std::ostream& out)
@@ -170,9 +176,14 @@ void ReceiveResponse(SOCKET connection, std::ostream& out)
 	// Всё ок, можно скачивать файл.
 	if (contentLength.has_value())
 		contentLength = *contentLength - firstPartOfData.size();
+
 	out.write(&firstPartOfData[0], firstPartOfData.size());
-	DownloadToStream(connection, out, contentLength);
+	if (contentLength.has_value())
+		ReceiveBytes(connection, out, *contentLength);
+	else
+		ReceiveBytesToEnd(connection, out);
 }
+
 
 // --------------------------------------------------------------------------------------------------------------------
 pair<string, vector<char>> ReceiveHeaders(SOCKET connection)
@@ -219,6 +230,7 @@ pair<string, vector<char>> ReceiveHeaders(SOCKET connection)
 	);
 }
 
+
 // --------------------------------------------------------------------------------------------------------------------
 // Анализируем заголовки, узнаём успешность ответа и размер контента.
 optional<size_t> ProcessHeaders(const string& headers)
@@ -245,33 +257,52 @@ optional<size_t> ProcessHeaders(const string& headers)
 	return std::nullopt;
 }
 
+
 // --------------------------------------------------------------------------------------------------------------------
-void DownloadToStream(SOCKET connection, std::ostream& out, optional<size_t> byteCount)
+void ReceiveBytesToEnd(SOCKET connection, std::ostream& out)
 {
-/*
-	// 4. Выводим в поток весь оставшийся файл.
+	const size_t bufsize = 512;
+	char buffer[bufsize];
+	size_t received;
+
+	// Выводим в поток всё что удаётся скачать.
 	do
 	{
 		received = recv(connection, buffer, bufsize - 1, 0);
-		if (received >= 0)
-		{
-			buffer[received] = '\0';
-			source << buffer;
-		}
-		else
+		if (received > 0)
+			out.write(&buffer[0], received);
+		else if (received < 0)
 			throw WinsockSocketException();
 
 	} while (received);
-
-	// Избавляемся от заголовков.
-	auto result = source.str();
-	auto pos = result.find(rnrn);
-	if (pos == string::npos)
-		throw WinsockException("Headers end is not found.");
-	result = result.substr(start);
-
-	out << result;
-*/
 }
+
+
+// --------------------------------------------------------------------------------------------------------------------
+void ReceiveBytes(SOCKET connection, std::ostream& out, size_t byteCount)
+{
+	const size_t bufsize = 512;
+	char buffer[bufsize];
+	size_t received, receivedTotal = 0;
+
+	// Выводим в поток ровно byteCount байт.
+	do
+	{
+		received = recv(connection, buffer, bufsize - 1, 0);
+		if (received > 0)
+		{
+			receivedTotal += received;
+
+			if (receivedTotal <= byteCount)
+				out.write(&buffer[0], received);
+			else
+				throw WinsockException("Received more bytes than indicated at the Content-Length field.");
+		}
+		else if (received < 0)
+			throw WinsockSocketException();
+
+	} while (received);
+}
+
 
 // --------------------------------------------------------------------------------------------------------------------
