@@ -116,7 +116,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 	string source = ssTmp.str();
 
 	// Сохраняем html-файл.
-	std::ofstream file(fullFilenameName);
+	std::ofstream file(fullFilenameName, std::ios::out | std::ios::binary);
 	file << source;
 	file.flush();
 
@@ -140,7 +140,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 			// Каждую из зависимостей пытаемся скачать как отдельный файл, по очереди.
 			try // Часть зависимостей может не скачаться по тем или иным причинам.
 			{
-				std::ofstream out(fullSubdirectoryName + '/' + GetFileName(absolutePath));
+				std::ofstream out(fullSubdirectoryName + '/' + GetFileName(absolutePath), std::ios::out | std::ios::binary);
 				DownloadFile(absolutePath, out);
 				out.close();
 			}
