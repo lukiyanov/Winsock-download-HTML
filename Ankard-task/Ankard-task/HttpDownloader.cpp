@@ -225,8 +225,8 @@ pair<string, vector<char>> ReceiveHeaders(SOCKET connection)
 	// buffer[0, border - 1] - всё ещё последняя часть заголовков, символ '\n'.
 	// buffer[border, received - 1] - первая часть данных, которых, однако, может и не быть.
 	// buffer[received] - '\0', который мы поставили выше.
-	const auto border = rnrnPos - headersPrevLength + rnrnLength;
-	if (border > received)	// Вообще-то такого не может быть, но лучше поставить проверку на это.
+	const size_t border = rnrnPos - headersPrevLength + rnrnLength;
+	if (border > static_cast<size_t>(received))	// Вообще-то такого не может быть, но лучше поставить проверку на это.
 		throw std::logic_error("ReceiveHeaders(): rnrnPos - headersPrevLength + rnrnLength > received");
 
 	return pair(
@@ -242,8 +242,8 @@ optional<size_t> ProcessHeaders(const string& headers)
 {
 	// Проверяем код из первой строки на наилчие кода 2хх.
 	// Тут отваливаются перенаправления, 404 и прочее.
-	std::regex xSuccess(R"(HTTP\/[0-9]+\.[0-9]+\s+2[0-9]{2}(.|\r|\n)*?)", std::regex::icase);
-	if (!std::regex_match(headers.substr(0, 30), xSuccess))	// 30 символов достаточно для анализа первой строки
+	std::regex xSuccess(R"(\s*HTTP\/[0-9]+\.[0-9]+\s+2[0-9]{2}[\S\s]*)", std::regex::icase);
+	if (!std::regex_match(headers, xSuccess))
 		throw WinsockException("The ansver is not 2xx.");
 
 	// Ищем Content-Length.
