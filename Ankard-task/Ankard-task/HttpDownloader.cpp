@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <memory>
 #include <vector>
+#include <optional>
 
 #include <winsock2.h>
 #pragma comment(lib, "Ws2_32.lib")
@@ -18,6 +19,7 @@ using std::string_view;
 using std::ostringstream;
 using std::pair;
 using std::vector;
+using std::optional;
 
 // --------------------------------------------------------------------------------------------------------------------
 // Отсылка запроса на получение файла.
@@ -34,6 +36,19 @@ void ReceiveResponse(SOCKET connection, std::ostream& out);
 // Возвращает <заголовок, данные> где данные - первый пакет данных, считанный после заголовка (может быть пустым).
 // --------------------------------------------------------------------------------------------------------------------
 pair<string, vector<char>> ReceiveHeaders(SOCKET connection);
+
+// --------------------------------------------------------------------------------------------------------------------
+// Обрабатывает заголовки HTTP и если что-то не так, генерирует исключение.
+// Возвращает значение заголовка Content-Length, если он был обнаружен.
+// Если не был - std::nullopt.
+// --------------------------------------------------------------------------------------------------------------------
+optional<size_t> ProcessHeaders(const string& headers);
+
+// --------------------------------------------------------------------------------------------------------------------
+// Скачивает из сокета и записывает в поток ровно byteCount байт.
+// Если в качестве byteCount передан std::nullopt, то скачивает данные до закрытия сокета.
+// --------------------------------------------------------------------------------------------------------------------
+void DownloadToStream(SOCKET connection, std::ostream& out, optional<size_t> byteCount);
 
 
 
@@ -149,47 +164,14 @@ void SendRequest(SOCKET connection, string_view pageUrl, string_view hostName)
 // --------------------------------------------------------------------------------------------------------------------
 void ReceiveResponse(SOCKET connection, std::ostream& out)
 {
-	auto [headers, firstDataPart] = ReceiveHeaders(connection);
+	auto [headers, firstPartOfData] = ReceiveHeaders(connection);
+	auto contentLength = ProcessHeaders(headers);
 
-	// 2. Анализируем заголовки, узнаём успешность ответа и размер контента.
-	{
-		// Проверяем код из первой строки на наилчие кода 2хх.
-		std::regex xSuccess(R"(HTTP\/[0-9]+\.[0-9]+\s+2[0-9]{2}(.|\r|\n)*)");
-		if (!std::regex_match(headers, xSuccess))
-			throw WinsockException("The ansver is not 2xx.");		// Тут отваливаются перенаправления, 404 и прочее.
-
-		// TODO: Content-Length
-		// TODO: проверить что [rnrnPos + rnrnLength, received - 1] непусто
-	}
-
-	// 3. Выводим первую часть данных в поток.
-	/*
-	ostringstream source;
-	source << buffer;
-
-	// 4. Выводим в поток весь оставшийся файл.
-	do
-	{
-		received = recv(connection, buffer, bufsize - 1, 0);
-		if (received >= 0)
-		{
-			buffer[received] = '\0';
-			source << buffer;
-		}
-		else
-			throw WinsockSocketException();
-
-	} while (received);
-
-	// Избавляемся от заголовков.
-	auto result = source.str();
-	auto pos = result.find(rnrn);
-	if (pos == string::npos)
-		throw WinsockException("Headers end is not found.");
-	result = result.substr(start);
-
-	out << result;
-	*/
+	// Всё ок, можно скачивать файл.
+	if (contentLength.has_value())
+		contentLength = *contentLength - firstPartOfData.size();
+	out.write(&firstPartOfData[0], firstPartOfData.size());
+	DownloadToStream(connection, out, contentLength);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -235,6 +217,61 @@ pair<string, vector<char>> ReceiveHeaders(SOCKET connection)
 		headers.substr(0, rnrnPos + rnrnLength),
 		vector(&buffer[rnrnPos - headersPrevLength + rnrnLength], &buffer[received])
 	);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+// Анализируем заголовки, узнаём успешность ответа и размер контента.
+optional<size_t> ProcessHeaders(const string& headers)
+{
+	// Проверяем код из первой строки на наилчие кода 2хх.
+	// Тут отваливаются перенаправления, 404 и прочее.
+	std::regex xSuccess(R"(HTTP\/[0-9]+\.[0-9]+\s+2[0-9]{2}(.|\r|\n)*?)", std::regex::icase);
+	if (!std::regex_match(headers.substr(0, 30), xSuccess))	// 30 символов достаточно для анализа первой строки
+		throw WinsockException("The ansver is not 2xx.");
+
+	// Ищем Content-Length.
+	std::regex xContentLength(R"(Content-Length:.*?[0-9]+.*?\r\n)", std::regex::icase);
+	std::smatch match;
+	if (std::regex_search(headers, match, xContentLength))
+	{
+		std::string contentLengthLine = match.str();
+		// Выделяем число из строки.
+		if (!std::regex_search(contentLengthLine, match, std::regex("[0-9]+")))
+			throw std::runtime_error("The search for the byte count in the Content-Length header failed");
+			
+		return atol(match.str().c_str());
+	}
+
+	return std::nullopt;
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+void DownloadToStream(SOCKET connection, std::ostream& out, optional<size_t> byteCount)
+{
+/*
+	// 4. Выводим в поток весь оставшийся файл.
+	do
+	{
+		received = recv(connection, buffer, bufsize - 1, 0);
+		if (received >= 0)
+		{
+			buffer[received] = '\0';
+			source << buffer;
+		}
+		else
+			throw WinsockSocketException();
+
+	} while (received);
+
+	// Избавляемся от заголовков.
+	auto result = source.str();
+	auto pos = result.find(rnrn);
+	if (pos == string::npos)
+		throw WinsockException("Headers end is not found.");
+	result = result.substr(start);
+
+	out << result;
+*/
 }
 
 // --------------------------------------------------------------------------------------------------------------------
