@@ -42,7 +42,7 @@ namespace task
 			std::string_view difectory,
 			std::string_view fileName,
 			std::string_view pageUrl,
-			std::function<void(const std::string&)> failedDependencyDownloadProcessor
+			std::function<void(const std::string&, const std::exception&)> failedDependencyDownloadProcessor
 		);
 
 

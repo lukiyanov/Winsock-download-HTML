@@ -19,8 +19,8 @@ int main(int argc, char** argv)
 		downloader.AddDependencyRecognizer(tags::img);
 		// Собственно, скачиваем.
 		downloader.DownloadPageWithDependencies(cmdLine.GetDirectory(), "page", cmdLine.GetUrl(),
-			[](const std::string& uri) {
-				std::cout << "Failed to download dependency: " << uri << std::endl;
+			[](const std::string& uri, const std::exception& ex) {
+				std::cout << "Failed to download dependency: " << uri << " (" << ex.what() << ')' << std::endl;
 			}
 		);
 	}

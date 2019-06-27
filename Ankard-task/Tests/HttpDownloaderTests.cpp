@@ -39,7 +39,7 @@ namespace Tests
 			std::filesystem::remove("../page.html");
 			std::filesystem::remove_all("../page");
 			downloader.DownloadPageWithDependencies("..", "page", "http://shelek.com/view/theory/151",
-				[](const std::string& uri) {/* не делаем ничего */});
+				[](const std::string& uri, const std::exception& ex) {/* не делаем ничего */});
 
 			Assert::IsTrue(std::filesystem::exists("../page.html"));
 			Assert::IsTrue(std::filesystem::exists("../page"));

@@ -75,22 +75,22 @@ void HttpDownloader::DownloadFile(string_view pageUrl, std::ostream& out)
 	if (connection == INVALID_SOCKET)
 		throw WinsockSocketException();
 
-		// Получаем имя хоста.
-		auto hostName = GetHttpHostNameByUrl(pageUrl);
+	// Получаем имя хоста.
+	auto hostName = GetHttpHostNameByUrl(pageUrl);
 
-		// Заполняем адрес сервера.
-		sockaddr_in server = {0};
-		server.sin_family = AF_INET;
-		server.sin_addr.s_addr = GetServerAddress(hostName);
-		server.sin_port = htons(80);
+	// Заполняем адрес сервера.
+	sockaddr_in server = {0};
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = GetServerAddress(hostName);
+	server.sin_port = htons(80);
 
-		// Устанавливаем соединение.
-		if (SOCKET_ERROR == connect(connection, (sockaddr*)& server, sizeof(server)))
-			throw WinsockSocketException();
+	// Устанавливаем соединение.
+	if (SOCKET_ERROR == connect(connection, (sockaddr*)& server, sizeof(server)))
+		throw WinsockSocketException();
 
-		// Скачиваем саму страницу.
-		SendRequest(connection, pageUrl, hostName);
-		ReceiveResponse(connection, out);
+	// Скачиваем саму страницу.
+	SendRequest(connection, pageUrl, hostName);
+	ReceiveResponse(connection, out);
 }
 
 
@@ -99,7 +99,7 @@ void HttpDownloader::DownloadPageWithDependencies(
 	string_view difectory,
 	string_view fileName,
 	string_view pageUrl,
-	std::function<void(const string&)> failedDependencyDownloadProcessor)
+	std::function<void(const string&, const std::exception&)> failedDependencyDownloadProcessor)
 {
 	// Определяем имена на диске файла и папки для него.
 	ostringstream ssTmp;
@@ -144,9 +144,9 @@ void HttpDownloader::DownloadPageWithDependencies(
 				DownloadFile(absolutePath, out);
 				out.close();
 			}
-			catch (const WinsockException&)
+			catch (const WinsockException& ex)
 			{
-				failedDependencyDownloadProcessor(path);
+				failedDependencyDownloadProcessor(path, ex);
 			}
 		}
 	}
@@ -177,7 +177,9 @@ void ReceiveResponse(SOCKET connection, std::ostream& out)
 	if (contentLength.has_value())
 		contentLength = *contentLength - firstPartOfData.size();
 
-	out.write(&firstPartOfData[0], firstPartOfData.size());
+	if (!firstPartOfData.empty())
+		out.write(&firstPartOfData[0], firstPartOfData.size());
+
 	if (contentLength.has_value())
 		ReceiveBytes(connection, out, *contentLength);
 	else
@@ -220,13 +222,16 @@ pair<string, vector<char>> ReceiveHeaders(SOCKET connection)
 	} while (rnrnPos == string::npos);
 
 	// Нашли.
-	// Пусть border = rnrnPos - headersPrevLength + rnrnLength, тогда:
 	// buffer[0, border - 1] - всё ещё последняя часть заголовков, символ '\n'.
 	// buffer[border, received - 1] - первая часть данных, которых, однако, может и не быть.
 	// buffer[received] - '\0', который мы поставили выше.
+	const auto border = rnrnPos - headersPrevLength + rnrnLength;
+	if (border > received)	// Вообще-то такого не может быть, но лучше поставить проверку на это.
+		throw std::logic_error("ReceiveHeaders(): rnrnPos - headersPrevLength + rnrnLength > received");
+
 	return pair(
 		headers.substr(0, rnrnPos + rnrnLength),
-		vector(&buffer[rnrnPos - headersPrevLength + rnrnLength], &buffer[received])
+		vector(&buffer[border], &buffer[received])
 	);
 }
 
