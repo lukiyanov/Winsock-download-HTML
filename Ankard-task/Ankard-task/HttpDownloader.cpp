@@ -307,6 +307,9 @@ void ReceiveBytes(SOCKET connection, std::ostream& out, size_t byteCount)
 			throw WinsockSocketException();
 
 	} while (received);
+
+	if (receivedTotal < byteCount)
+		throw WinsockException("Received less bytes than indicated at the Content-Length field.");
 }
 
 
